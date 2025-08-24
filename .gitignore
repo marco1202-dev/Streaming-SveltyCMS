@@ -1,0 +1,55 @@
+.DS_Store
+
+# sveltekit
+/build
+/.svelte-kit
+/package
+package-lock.json
+bun.lockb
+node_modules
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# secrets
+/config/private.ts
+/config/public.ts
+/data.json
+
+# Backup folder under config
+/config/backup/
+
+# SveltyCMS
+/tmp
+trash/*
+media/*
+mediaFiles/
+compiledCollections/*
+logs/*
+Docs/*
+.node-version
+
+
+# Ensure src/utils/media and its contents are not ignored
+!src/utils/media/
+!src/utils/media/*.ts
+
+
+# debug
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# build
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/error-screenshot.png
+
+# Rust
+/data.json
+/indexes
+/*.bin
+
+#paraglide.js
+src/paraglide/**/*.js

@@ -1,0 +1,62 @@
+# This workflow uses semantic-release to automatically publish new versions of your package to GitHub and npm based on commit messages
+name: Semantic Release
+
+# Triggers the workflow ONLY when a push happens to the main branch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {} # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  release:
+    permissions:
+      contents: write # Allow writing to the repository contents
+      issues: write # Allow creating and updating issues
+      pull-requests: write # Allow creating and updating pull requests
+
+    runs-on: ubuntu-latest # Use the latest Ubuntu virtual environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Use the checkout action to clone the repository
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1 # Use the setup-bun action
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        id: bun-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run semantic-release
+        run: bunx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provide the GitHub token as an environment variable
+          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # Provide the npm token as an environment variable if you want to publish to npm as well
+
+      - name: Update package.json version after semantic release
+        # Setting an environment variables defined in github Environments
+        env:
+          GIT_USER_EMAIL: '${{ env.GIT_USER_EMAIL }}'
+          GIT_USER_NAME: '${{ env.GIT_USER_NAME }}'
+        run: |
+          # This step uses npm to version because bun does not have a direct equivalent for `pnpm version --no-git-tag-version`
+          # setup-bun makes Node.js and npm available.
+          git config user.email "${{ env.GIT_USER_EMAIL }}"
+          git config user.name "${{ env.GIT_USER_NAME }}"
+          git checkout ${{ github.ref }}
+          git pull origin ${{ github.ref }}
+          npm version --no-git-tag-version --allow-same-version
+          git add package.json
+          git commit -m "chore: update package version after semantic release" || true
+          git push origin ${{ github.ref }}
